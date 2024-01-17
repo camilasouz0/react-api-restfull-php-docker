@@ -5,7 +5,7 @@ src/public/hot
 src/public/storage
 src/storage/*.key
 src/vendor
-scr/.env
+src/.env
 .env.backup
 .env.production
 src/.phpunit.result.cache
@@ -17,3 +17,4 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+data
