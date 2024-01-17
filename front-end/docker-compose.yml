@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  front-end:
+    container_name: front-end
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
+    env_file:
+      - .env
+    volumes:
+      - ./app/src:/app/src
+      - ./app/public:/app/public
+    restart: always
+    ports:
+      - 3000:3000
+    networks:
+      - react_network
+networks:
+  react_network:
+    external: true
