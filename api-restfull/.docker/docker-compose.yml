@@ -1,0 +1,78 @@
+version: '3.8'
+services:
+  nginx:
+    image: nginx:stable-alpine
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./src:/var/www/html
+      - ./conf/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+      - mariadb
+    networks:
+      - react_network
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile.php
+    container_name: php
+    volumes:
+      - ./src:/var/www/html
+      - ./conf/php/php.ini:/usr/local/etc/php/conf.d/local.ini
+    ports:
+      - "9000:9000"
+    environment:
+      - APP_ENV=local
+    networks:
+      - react_network
+
+  mariadb:
+    build:
+      context: .
+      dockerfile: Dockerfile.mysql
+    container_name: mariadb
+    image: 'mariadb:10'
+    ports:
+      - '${FORWARD_DB_PORT:-3306}:3306'
+    environment:
+      MYSQL_ROOT_USER: root
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: mydatabase
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: mypassword
+    volumes:
+      - './data/mariadb:/var/lib/mysql'
+      - './conf/my.cnf:/etc/mysql/my.cnf'
+      - './../src/vendor/laravel/sail/database/mysql/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
+    networks:
+      - react_network
+    healthcheck:
+      test:
+        - CMD
+        - mysqladmin
+        - ping
+      retries: 3
+      timeout: 5s
+
+  redis:
+    container_name: redis
+    image: 'redis:alpine'
+    ports:
+      - '${FORWARD_REDIS_PORT:-6379}:6379'
+    volumes:
+      - './data/redis:/data'
+    networks:
+      - react_network
+    healthcheck:
+      test:
+        - CMD
+        - redis-cli
+        - ping
+      retries: 3
+      timeout: 5s
+
+networks:
+  react_network:
+    external: true
